@@ -1,41 +1,42 @@
-# SUSTech WiFi Login
+# SUSTech WiFi Quick Login
 
-## Introduce
+Empower your devices with no screen to automatically sign in SUSTech WiFi.
 
-Students may have problems when connecting to college WiFi using shell due to the lack of GUI.
+Recommend: Use the shell version.
+```shell
+#!/bin/bash
+curl https://cas.sustech.edu.cn/cas/login?service=http%3A%2F%2F172.16.16.20%3A803%2Fsustech_cas.php > a.txt
+s=$(grep -o -E "on\"\ value=\"(.+?)\"" a.txt)
+s=${s#*\"}
+s=${s#*\"}
+s=${s%%\"*}
+# 此处填写学工号/教工号
+unm=11810101
+# 此处填入密码
+pwd=123456
+curl "https://cas.sustech.edu.cn/cas/login?service=http%3A%2F%2F172.16.16.20%3A803%2Fsustech_cas.php" --data "username=$unm&password=$pwd&execution=$s&_eventId=submit&geolocation="
+```
 
-Whexy provided an automatical shell script and a python program for Linux and MacOS users to handle this problem.
-
-If you're using OpenWRT, please check [here](https://www.whexy.com/2019/08/22/OpenWrt%E4%B9%8B%E8%A7%A3%E5%86%B3%E5%8D%97%E7%A7%91%E5%A4%A7%E6%A0%A1%E5%9B%AD%E7%BD%91%E7%99%BB%E5%BD%95%E9%9A%BE%E9%A2%98/).
-
-## How to use
-
-1. Pull the repo, using ``git clone https://github.com/whexy/SUSTech_WiFi_Login.git``;
-3. Modify the script with your Student ID/Teacher ID and your password.
-
-
-
-# 南方科技大学 校园网登录
-
-## 简介
-
-当使用无用户界面的系统时，通过南方科技大学校园网认证较为困难。
-
-Whexy 提供了一套自动化 Shell 脚本，和一个 Python 脚本以解决这个问题。
-
-## 如何使用
-
-1. 克隆这个仓库，使用命令``git clone https://github.com/whexy/SUSTech_WiFi_Login.git``；
-2. 用你自己的学工号/教工号和密码修改脚本
-
-## 关于 Python 脚本
-
-不推荐使用 Python 脚本来完成此项工作，因为 Python 脚本的运行效率远低于 Shell 脚本。
-
-为缩减脚本实际运行体积，只使用了 requests 库和正则搜索 re 库。请核对外部依赖库是否安装：
-
-> requests==2.22.0
-
-若没有安装，请使用：
-
-``pip install requests`` 或 ``pip3 install requests``安装。
+Or use the python version (`requests` library required).
+```python
+from requests import Session
+from re import findall
+url = "https://cas.sustech.edu.cn/cas/login?service=http://172.16.16.20:803/sustech_cas.php"
+def connect(username, password):
+    s = Session()
+    r = s.get(url)
+    execution = findall('on" value="(.+?)"', r.text)[0]
+    data = {
+        'username': username,
+        'password': password,
+        'execution': execution,
+        '_eventId': 'submit',
+        'geolocation': ''
+    }
+    r = s.post(url, data)
+    print(r)
+if __name__ == "__main__":
+    username = "11810101"  # 此处填写学工号/教工号
+    password = "123456"  # 此处填写密码
+    connect(username, password)
+```
